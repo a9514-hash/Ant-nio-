@@ -1,0 +1,46 @@
+name: Criar APK Android
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Obter projeto
+        uses: actions/checkout@v4
+
+      - name: Preparar Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Preparar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Extrair projeto
+        run: |
+          unzip -q Estremoz_Alerta_Projeto_Android.zip -d projeto
+          cd projeto
+          npm install
+          npx cap add android
+          npx cap sync android
+
+      - name: Criar APK
+        run: |
+          cd projeto/android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Guardar APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Estremoz-Alerta-APK
+          path: projeto/android/app/build/outputs/apk/debug/app-debug.apk
